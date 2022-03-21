@@ -8,7 +8,7 @@ fun Application.configureDefaultHeader(){
     install(DefaultHeaders){
         val yearInSeconds = Duration.ofDays(365).seconds
         header(
-            name = "Default Header",
+            name = "Default-Header",
             value = "public, max-age-$yearInSeconds, immutable"
         )
     }
