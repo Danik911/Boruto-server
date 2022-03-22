@@ -154,6 +154,94 @@ class ApplicationTest {
             }
         }
     }
+    @Test
+    fun `search one hero, expect expect one hero found`() {
+        withTestApplication(moduleFunction = Application::module) {
+            handleRequest(HttpMethod.Get, "/boruto/heroes/search?name=sas").apply {
+                assertEquals(
+                    expected = HttpStatusCode.OK,
+                    actual = response.status()
+                )
+
+                val actualResult = Json.decodeFromString<ApiResponse>(response.content.toString()).heroes.size
+
+                assertEquals(
+                    expected = 1,
+                    actual = actualResult
+                )
+            }
+        }
+    }
+    @Test
+    fun `search heroes, expect expect multiple heroes found`() {
+        withTestApplication(moduleFunction = Application::module) {
+            handleRequest(HttpMethod.Get, "/boruto/heroes/search?name=sa").apply {
+                assertEquals(
+                    expected = HttpStatusCode.OK,
+                    actual = response.status()
+                )
+
+                val actualResult = Json.decodeFromString<ApiResponse>(response.content.toString()).heroes.size
+
+                assertEquals(
+                    expected = 3,
+                    actual = actualResult
+                )
+            }
+        }
+    }
+    @Test
+    fun `search unknown hero, expect expect empty list found`() {
+        withTestApplication(moduleFunction = Application::module) {
+            handleRequest(HttpMethod.Get, "/boruto/heroes/search?name=unknown").apply {
+                assertEquals(
+                    expected = HttpStatusCode.OK,
+                    actual = response.status()
+                )
+
+                val actualResult = Json.decodeFromString<ApiResponse>(response.content.toString()).heroes
+
+                assertEquals(
+                    expected = emptyList(),
+                    actual = actualResult
+                )
+            }
+        }
+    }
+    @Test
+    fun `search empty search field, expect empty list found`() {
+        withTestApplication(moduleFunction = Application::module) {
+            handleRequest(HttpMethod.Get, "/boruto/heroes/search?name=").apply {
+                assertEquals(
+                    expected = HttpStatusCode.OK,
+                    actual = response.status()
+                )
+
+                val actualResult = Json.decodeFromString<ApiResponse>(response.content.toString()).heroes
+
+                assertEquals(
+                    expected = emptyList(),
+                    actual = actualResult
+                )
+            }
+        }
+    }
+    @Test
+    fun `get non existing end point, expect an error`() {
+        withTestApplication(moduleFunction = Application::module) {
+            handleRequest(HttpMethod.Get, "/unknown").apply {
+                assertEquals(
+                    expected = HttpStatusCode.NotFound,
+                    actual = response.status()
+                )
+
+                assertEquals(
+                    expected = "Page not found",
+                    actual = response.content
+                )
+            }
+        }
+    }
 
     private fun calculatePage(page: Int): Map<String, Int?> {
         var prevPage: Int? = page
