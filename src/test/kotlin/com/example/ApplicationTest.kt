@@ -108,8 +108,54 @@ class ApplicationTest {
         }
 
     }
+    @Test
+    fun `get all heroes page number out of the range, expect error`() {
+        withTestApplication(moduleFunction = Application::module) {
+            handleRequest(HttpMethod.Get, "/boruto/heroes?page=6").apply {
+                assertEquals(
+                    expected = HttpStatusCode.NotFound,
+                    actual = response.status()
+                )
+                val expectedResult = ApiResponse(
+                    success = false,
+                    message = "Only numbers from 1 to 5 are accepted",
 
-    fun calculatePage(page: Int): Map<String, Int?> {
+                )
+                val actualResult = Json.decodeFromString<ApiResponse>(response.content.toString())
+                println("$expectedResult")
+                println("$actualResult")
+                assertEquals(
+                    expected = expectedResult,
+                    actual = actualResult
+                )
+            }
+        }
+    }
+    @Test
+    fun `get all heroes invalid page number, expect error`() {
+        withTestApplication(moduleFunction = Application::module) {
+            handleRequest(HttpMethod.Get, "/boruto/heroes?page=invalid").apply {
+                assertEquals(
+                    expected = HttpStatusCode.BadRequest,
+                    actual = response.status()
+                )
+                val expectedResult = ApiResponse(
+                    success = false,
+                    message = "Invalid request, only numbers are accepted",
+
+                    )
+                val actualResult = Json.decodeFromString<ApiResponse>(response.content.toString())
+                println("$expectedResult")
+                println("$actualResult")
+                assertEquals(
+                    expected = expectedResult,
+                    actual = actualResult
+                )
+            }
+        }
+    }
+
+    private fun calculatePage(page: Int): Map<String, Int?> {
         var prevPage: Int? = page
         var nextPage: Int? = page
 
