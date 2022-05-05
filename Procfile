@@ -1,0 +1,1 @@
+web: build/install/com.example.boruto-server/bin/com.example.boruto-server

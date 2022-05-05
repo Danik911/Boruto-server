@@ -14,6 +14,9 @@ applicationDefaultJvmArgs = ["-Dio.ktor.development=$isDevelopment"]
 repositories {
     mavenCentral()
 }
+tasks.create("stage"){
+    dependsOn("installDist")
+}
 
 dependencies {
     implementation "io.ktor:ktor-server-core:$ktor_version"
