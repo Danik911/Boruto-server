@@ -1,6 +1,7 @@
 package com.example.plugins
 
 import com.example.routs.getAllHeroes
+import com.example.routs.getAllHeroesAlternative
 import com.example.routs.root
 import com.example.routs.searchHeroes
 import io.ktor.routing.*
@@ -14,7 +15,8 @@ fun Application.configureRouting() {
 
     routing {
         root()
-        getAllHeroes()
+        //getAllHeroes()
+        getAllHeroesAlternative()
         searchHeroes()
         static("/images"){
             resources("images")

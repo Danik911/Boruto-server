@@ -3,24 +3,8 @@ package com.example.repository
 import com.example.models.ApiResponse
 import com.example.models.Hero
 
-
-const val PREV_PAGE_KEY = "prevPage"
-const val NEXT_PAGE_KEY = "nextPage"
-
-class HeroRepositoryImpl : HeroRepository {
-
-    override val heroes: Map<Int, List<Hero>> by lazy {
-        mapOf(
-            1 to page1,
-            2 to page2,
-            3 to page3,
-            4 to page4,
-            5 to page5
-        )
-    }
-
-
-    override val page1 = listOf(
+class HeroRepositoryAlternativeImpl : HeroRepositoryAlternative {
+    override val heroes = listOf(
         Hero(
             id = 1,
             name = "Sasuke",
@@ -107,9 +91,7 @@ class HeroRepositoryImpl : HeroRepository {
                 "Water",
                 "Fire"
             )
-        )
-    )
-    override val page2 = listOf(
+        ),
         Hero(
             id = 4,
             name = "Boruto",
@@ -184,9 +166,7 @@ class HeroRepositoryImpl : HeroRepository {
                 "Lightning",
                 "Wind"
             )
-        )
-    )
-    override val page3 = listOf(
+        ),
         Hero(
             id = 7,
             name = "Kawaki",
@@ -257,9 +237,7 @@ class HeroRepositoryImpl : HeroRepository {
                 "Earth",
                 "Water"
             )
-        )
-    )
-    override val page4 = listOf(
+        ),
         Hero(
             id = 10,
             name = "Isshiki",
@@ -331,9 +309,7 @@ class HeroRepositoryImpl : HeroRepository {
                 "Wind",
                 "Earth"
             )
-        )
-    )
-    override val page5 = listOf(
+        ),
         Hero(
             id = 13,
             name = "Code",
@@ -400,14 +376,27 @@ class HeroRepositoryImpl : HeroRepository {
         )
     )
 
-    override suspend fun getAllHeroes(page: Int): ApiResponse {
+    override suspend fun getAllHeroes(page: Int, limit: Int): ApiResponse {
         return ApiResponse(
             success = true,
             message = "OK",
-            prevPage = calculatePage(page)[PREV_PAGE_KEY],
-            nextPage = calculatePage(page)[NEXT_PAGE_KEY],
-            heroes = heroes[page]!!,
+            prevPage = calculatePage(
+                page = page,
+                limit = limit,
+                heroes = heroes
+            )["prevPage"],
+            nextPage = calculatePage(
+                page = page,
+                limit = limit,
+                heroes = heroes
+            )["nextPage"],
+            heroes = provideHeroes(
+                page = page,
+                limit = limit,
+                heroes = heroes
+            ),
             lastUpdated = System.currentTimeMillis()
+
         )
     }
 
@@ -419,23 +408,38 @@ class HeroRepositoryImpl : HeroRepository {
         )
     }
 
-    private fun calculatePage(page: Int): Map<String, Int?> {
-        var prevPage: Int? = page
-        var nextPage: Int? = page
+    private fun calculatePage(
+        page: Int,
+        limit: Int,
+        heroes: List<Hero>
+    ): Map<String, Int?> {
+        val allHeroes = heroes.windowed(
+            size = limit,
+            step = limit,
+            partialWindows = true
+        )
+        require(page <= allHeroes.size)
+        val prevPage = if (page == 1) null else (page - 1)
+        val nextPage = if (page == allHeroes.size) null else (page + 1)
+        return mapOf(
+            "prevPage" to prevPage,
+            "nextPage" to nextPage
+        )
 
-        if (page in 2..5) {
-            prevPage = prevPage?.minus(1)
-        }
-        if (page in 1..4) {
-            nextPage = nextPage?.plus(1)
-        }
-        if (page == 5) {
-            nextPage = null
-        }
-        if (page == 1) {
-            prevPage = null
-        }
-        return mapOf(PREV_PAGE_KEY to prevPage, NEXT_PAGE_KEY to nextPage)
+    }
+
+    private fun provideHeroes(
+        page: Int,
+        limit: Int,
+        heroes: List<Hero>
+    ): List<Hero> {
+        val allHeroes = heroes.windowed(
+            size = limit,
+            step = limit,
+            partialWindows = true
+        )
+        require(page > 0 && page <= allHeroes.size)
+        return allHeroes[page - 1]
     }
 
     private fun findHeroes(query: String?): List<Hero> {
@@ -443,11 +447,9 @@ class HeroRepositoryImpl : HeroRepository {
         val searchResult = mutableListOf<Hero>()
 
         return if (!query.isNullOrEmpty()) {
-            heroes.forEach { _, heroes ->
-                heroes.forEach { hero ->
-                    if (hero.name.lowercase().contains(query.lowercase())) {
-                        searchResult.add(hero)
-                    }
+            heroes.forEach { hero ->
+                if (hero.name.lowercase().contains(query.lowercase())) {
+                    searchResult.add(hero)
                 }
             }
             searchResult
@@ -455,4 +457,5 @@ class HeroRepositoryImpl : HeroRepository {
             return emptyList()
         }
     }
+
 }
